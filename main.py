@@ -1,6 +1,6 @@
-from app.livro import Livro
-from app.catalogo import Catalogo
-from app.interface import menu_cli
+from .livro import Livro
+from .catalogo import Catalogo
+from .interface import menu_cli
 def carregar_demo():
     cat=Catalogo()
     base=[
