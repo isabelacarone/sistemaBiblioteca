@@ -1,9 +1,9 @@
-from catalogo import Catalogo
-from livro import Livro
+from catalogo import catalogo
+from livro import livro
 from usuario import Usuario
 from datetime import datetime # para registro automático da data de empréstimo e devolução no histórico
 
-def interface(): #  refere-se ao sistema da biblioteca
+def interface(): # sistema a ser feito ainda, refere-se ao sistema da biblioteca
     """
     Interface de navegação do usuário
     """
@@ -54,14 +54,14 @@ def interface(): #  refere-se ao sistema da biblioteca
         termo = input('Digite o termo de busca: ').strip()
 
         if modo == 1:
-          livroEncontrado = Catalogo.buscarPorTitulo(termo)
+          livroEncontrado = catalogo.buscarPorTitulo(termo)
           if livroEncontrado:
             print(livroEncontrado.__tudoJunto__())
           else:
             print('nenhum livro encontrado com esse título')
 
         elif modo == 2:
-          resultados = Catalogo.buscarPorAutor(termo)
+          resultados = catalogo.buscarPorAutor(termo)
           if resultados:
             for i in resultados:
               print(i.__tudoJunto__())
@@ -69,7 +69,7 @@ def interface(): #  refere-se ao sistema da biblioteca
             print('nenhum livro encontrado com esse autor')
 
         elif modo == 3:
-          resultados = Catalogo.buscarPorEditora(termo)
+          resultados = catalogo.buscarPorEditora(termo)
           if resultados:
             for i in resultados:
               print(i.__tudoJunto__())
@@ -82,7 +82,7 @@ def interface(): #  refere-se ao sistema da biblioteca
           except ValueError:
             print('ano inválido')
             continue
-          resultados = Catalogo.buscarPorAno(ano)
+          resultados = catalogo.buscarPorAno(ano)
           if resultados:
             for i in resultados:
               print(i.__tudoJunto__())
@@ -95,7 +95,7 @@ def interface(): #  refere-se ao sistema da biblioteca
       elif opcao == 2:
         # Solicitar empréstimo
         titulo = input('Digite o título do livro que deseja emprestar: ').strip()
-        l = Catalogo.buscarPorTitulo(titulo)
+        l = catalogo.buscarPorTitulo(titulo)
         if not l:
           print('livro não encontrado.')
           continue
@@ -112,7 +112,7 @@ def interface(): #  refere-se ao sistema da biblioteca
       elif opcao == 3:
         # Devolver livro
         titulo = input('Digite o título do livro que deseja devolver: ').strip()
-        l = Catalogo.buscarPorTitulo(titulo)
+        l = catalogo.buscarPorTitulo(titulo)
         if not l:
           print('livro não encontrado.')
           continue
@@ -129,7 +129,7 @@ def interface(): #  refere-se ao sistema da biblioteca
       elif opcao == 4:
         # Entrar na lista de espera
         titulo = input('Digite o título do livro: ').strip()
-        l = Catalogo.buscarPorTitulo(titulo)
+        l = catalogo.buscarPorTitulo(titulo)
         if not l:
           print('livro não encontrado.')
           continue
