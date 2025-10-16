@@ -18,6 +18,8 @@ def interface(): # sistema a ser feito ainda, refere-se ao sistema da biblioteca
       print('3 - Devolver livro')
       print('4 - Entrar na lista de espera')
       print('5 - Ver lista de espera de um livro')
+      print('6 - Ver total de empréstimos de um livro')
+
       print('0 - Sair')
 
       """
