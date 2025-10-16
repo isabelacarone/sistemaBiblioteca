@@ -1,6 +1,6 @@
 from livro import Livro
 from catalogo import Catalogo
-from interface import menu_cli
+from interface import interface 
 def carregar_demo():
     cat=Catalogo()
     base=[
@@ -15,16 +15,10 @@ def carregar_demo():
         ("Arquitetura de Computadores","John L. Hennessy",2017,"Morgan Kaufmann",2),
         ("Redes de Computadores","Andrew S. Tanenbaum",2019,"Pearson",3),
     ]
-    for t,a,ano,ed,q in base: cat.adicionarLivro(Livro(t,a,ano,ed,q))
 
-    return cat
-if __name__=="__main__":
-    print("Inicializando sistema de biblioteca...")
-    cat=carregar_demo()
-    l = cat.buscarPorTitulo("Clean Code")
 
-    if l:
-        from .usuario import Usuario
-        print(l.emprestar(Usuario("Alice"))); print(l.emprestar(Usuario("Bruno"))); print(l.emprestar(Usuario("Carla")))
-        print(l.devolver(Usuario("Alice")))
-    menu_cli(cat)
+
+    # colocar os livros restantes e as outras coisas que o saulo pediu 
+
+
+

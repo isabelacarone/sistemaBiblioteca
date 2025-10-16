@@ -1,9 +1,8 @@
 
 from TAD.fila import ArrayQueue
 from TAD.pilha import ArrayStack
-from emprestimo import Emprestimo # vai ter que mudar 
-from reserva import Reserva     # vai ter que mudar
-
+from emprestimo import Emprestimo   # mudar o que tem empretismo para historico 
+from reserva import Reserva         # mudar o que tem reserva para historico 
 '''
 __tudoJunto__() => retorna uma str detalhada para listar tudo 
 emprestar() => registra um novo emprestimo se tiver livros disp.. caso contrario vai adiciona o usuário à fila de espera
