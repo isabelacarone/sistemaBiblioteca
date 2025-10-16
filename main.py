@@ -1,10 +1,4 @@
 # main.py
-# prepara o ambiente para a interface:
-# - cria um objeto Catalogo e o expõe como "catalogo" dentro do módulo catalogo
-# - cria um alias "livro" para a classe Livro dentro do módulo livro
-# isso garante que os imports do seu interface.py funcionem:
-#   from catalogo import catalogo
-#   from livro import livro
 
 from catalogo import Catalogo
 import catalogo as catalogo_mod
@@ -12,7 +6,9 @@ import catalogo as catalogo_mod
 from livro import Livro
 import livro as livro_mod
 
-from usuario import Usuario  # caso você use em testes locais
+from usuario import Usuario
+from interface import interface
+
 
 def carregarDemo(cat: Catalogo):
     base = [
@@ -30,19 +26,29 @@ def carregarDemo(cat: Catalogo):
     for t, a, ano, ed, q in base:
         cat.adicionarLivro(Livro(t, a, ano, ed, q))
 
-if __name__ == "__main__":
-    # 1) cria o catálogo
-    cat = Catalogo()
+    # adiciona o livro "Sociedade do Cansaço" sem exemplares disponíveis
+    # para que a tentativa de empréstimo coloque o usuário direto na fila
+    livro_han = Livro("Sociedade do Cansaço", "Byung-Chul Han", 2010, "Vozes", 0)
+    cat.adicionarLivro(livro_han)
 
-    # 2) coloca com dados de exemplo
+    # coloca Guilherme na fila de espera desse livro
+    guilherme = Usuario("Guilherme")
+    livro_han.emprestar(guilherme)  # sem cópias -> entra na fila
+
+
+if __name__ == "__main__":
+    # cria catálogo e carrega base + livro solicitado
+    cat = Catalogo()
     carregarDemo(cat)
 
-    # 3) expoe nomes 
-    #    - torna o objeto 'cat' acessível como 'catalogo' dentro do módulo catalogo
-    #    - cria 'livro' como alias para a classe Livro, para o import "from livro import livro"
+    # expõe nomes como seu interface.py espera:
+    #   from catalogo import catalogo
+    #   from livro import livro
     catalogo_mod.catalogo = cat
     livro_mod.livro = Livro
 
-    # 4) agora pode importar e chamar a interface normalmente
-    from interface import interface
+    # mostra a notificação ao abrir o sistema
+    print("notificação: Guilherme está na lista de espera para 'Sociedade do Cansaço'.")
+
+    # inicia a interface
     interface()
