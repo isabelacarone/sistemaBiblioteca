@@ -17,15 +17,16 @@ def interface(): # sistema a ser feito ainda, refere-se ao sistema da biblioteca
       print('2 - Solicitar empréstimo')
       print('3 - Devolver livro')
       print('4 - Entrar na lista de espera')
+      print('5 - Ver lista de espera de um livro')
       print('0 - Sair')
 
       """
-      tratamento de exceção com try e except para caso o usuário insira um número diferente de: 0, 1, 2, 3 e 4
+      tratamento de exceção com try e except para caso o usuário insira um número diferente de: 0, 1, 2, 3, 4 e 5
       """
       try:
         opcao = int(input("Escolha: "))
-        if opcao < 0 or opcao > 4:
-          print('Erro, digite um número entre 0 e 4 ')
+        if opcao < 0 or opcao > 5:
+          print('Erro, digite um número entre 0 e 5 ')
           continue
       except ValueError as erro:
         print(f'Erro: {erro}')
@@ -146,3 +147,21 @@ def interface(): # sistema a ser feito ainda, refere-se ao sistema da biblioteca
           l.emprestar(u)  # o método emprestar adiciona à fila se não tiver cópias
         except Exception as e:
           print('erro ao entrar na fila de espera:', e)
+
+      elif opcao == 5:
+        # Ver lista de espera de um livro
+        titulo = input('Digite o título do livro: ').strip()
+        l = catalogo.buscarPorTitulo(titulo)
+        if not l:
+          print('livro não encontrado.')
+          continue
+
+        reservas = getattr(l.historico, "_reservas", None)
+        if not reservas or reservas.is_empty():
+          print("não há ninguém na lista de espera para este livro.")
+        else:
+          print("\n--- LISTA DE ESPERA DE '" + l.titulo + "' ---")
+          posicao = 1
+          for r in reservas._data:
+            print(str(posicao) + "º - " + r["usuario"] + " (reserva feita em " + r["dataReserva"].strftime("%d/%m/%Y %H:%M") + ")")
+            posicao += 1

@@ -34,10 +34,10 @@ if __name__ == "__main__":
     # 1) cria o catálogo
     cat = Catalogo()
 
-    # 2) popula com dados de exemplo
+    # 2) coloca com dados de exemplo
     carregarDemo(cat)
 
-    # 3) expõe nomes exatamente como o seu interface.py espera
+    # 3) expoe nomes 
     #    - torna o objeto 'cat' acessível como 'catalogo' dentro do módulo catalogo
     #    - cria 'livro' como alias para a classe Livro, para o import "from livro import livro"
     catalogo_mod.catalogo = cat
