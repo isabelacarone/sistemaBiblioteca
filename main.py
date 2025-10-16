@@ -10,6 +10,7 @@ from usuario import Usuario
 
 def carregarDemo(cat: Catalogo):
     base = [
+        # livro                             autor         ano     editora  qntd
         ("Estruturas de Dados em Python","Niklaus Wirth",2020,"TechBooks",3),
         ("Algoritmos: Teoria e Prática","Thomas H. Cormen",2013,"Elsevier",2),
         ("Banco de Dados","Ramez Elmasri",2011,"Pearson",4),
