@@ -19,16 +19,15 @@ def interface(): # sistema a ser feito ainda, refere-se ao sistema da biblioteca
       print('4 - Entrar na lista de espera')
       print('5 - Ver lista de espera de um livro')
       print('6 - Ver total de empréstimos de um livro')
-
       print('0 - Sair')
 
       """
-      tratamento de exceção com try e except para caso o usuário insira um número diferente de: 0, 1, 2, 3, 4 e 5
+      tratamento de exceção com try e except para caso o usuário insira um número diferente de: 0, 1, 2, 3, 4, 5 e 6
       """
       try:
         opcao = int(input("Escolha: "))
-        if opcao < 0 or opcao > 5:
-          print('Erro, digite um número entre 0 e 5 ')
+        if opcao < 0 or opcao > 6:
+          print('Erro, digite um número entre 0 e 6 ')
           continue
       except ValueError as erro:
         print(f'Erro: {erro}')
@@ -167,6 +166,7 @@ def interface(): # sistema a ser feito ainda, refere-se ao sistema da biblioteca
           for r in reservas._data:
             print(str(posicao) + "º - " + r["usuario"] + " (reserva feita em " + r["dataReserva"].strftime("%d/%m/%Y %H:%M") + ")")
             posicao += 1
+
       elif opcao == 6:
         # Ver total de empréstimos de um livro
         titulo = input('Digite o título do livro: ').strip()
@@ -177,4 +177,3 @@ def interface(): # sistema a ser feito ainda, refere-se ao sistema da biblioteca
 
         totalEmprestimos = len(l.historico._emprestimos._data)
         print("o livro '" + l.titulo + "' já teve " + str(totalEmprestimos) + " empréstimo(s) registrados no histórico.")
-
