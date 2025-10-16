@@ -7,8 +7,6 @@ from livro import Livro
 import livro as livro_mod
 
 from usuario import Usuario
-from interface import interface
-
 
 def carregarDemo(cat: Catalogo):
     base = [
@@ -26,29 +24,26 @@ def carregarDemo(cat: Catalogo):
     for t, a, ano, ed, q in base:
         cat.adicionarLivro(Livro(t, a, ano, ed, q))
 
-    # adiciona o livro "Sociedade do Cansaço" sem exemplares disponíveis
-    # para que a tentativa de empréstimo coloque o usuário direto na fila
+    # adiciona "Sociedade do Cansaço" sem exemplares para que entre direto na fila
     livro_han = Livro("Sociedade do Cansaço", "Byung-Chul Han", 2010, "Vozes", 0)
     cat.adicionarLivro(livro_han)
 
     # coloca Guilherme na fila de espera desse livro
     guilherme = Usuario("Guilherme")
-    livro_han.emprestar(guilherme)  # sem cópias -> entra na fila
-
+    livro_han.emprestar(guilherme)  # sem cópias -> vai para fila de espera
+    # mensagem de notificação ao abrir o sistema:
+    print("notificação: Guilherme está na lista de espera para 'Sociedade do Cansaço'.")
 
 if __name__ == "__main__":
-    # cria catálogo e carrega base + livro solicitado
+    # 1) cria catálogo e carrega dados
     cat = Catalogo()
     carregarDemo(cat)
 
-    # expõe nomes como seu interface.py espera:
-    #   from catalogo import catalogo
-    #   from livro import livro
+    # 2) cria os aliases exatamente como o interface.py espera
+    #    (from catalogo import catalogo) e (from livro import livro)
     catalogo_mod.catalogo = cat
     livro_mod.livro = Livro
 
-    # mostra a notificação ao abrir o sistema
-    print("notificação: Guilherme está na lista de espera para 'Sociedade do Cansaço'.")
-
-    # inicia a interface
+    # 3) só agora importamos e iniciamos a interface
+    from interface import interface
     interface()
