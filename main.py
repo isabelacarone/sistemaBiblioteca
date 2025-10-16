@@ -1,7 +1,7 @@
 from livro import Livro
 from catalogo import Catalogo
 from interface import interface 
-def carregar_demo():
+def carregarDemo():
     cat=Catalogo()
     base=[
         ("Estruturas de Dados em Python","Niklaus Wirth",2020,"TechBooks",3),

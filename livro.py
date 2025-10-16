@@ -9,7 +9,6 @@ emprestar() => registra um novo emprestimo se tiver livros disp.. caso contrario
 devolver() => encerra o emprestimo ativo de um usuário
 libera um livro e se tiver fila de espera vai avisar o prox usuario
 '''
-# ta finalizado, nao muda
 
 class Livro:
     """
