@@ -176,4 +176,4 @@ def interface(): # sistema a ser feito ainda, refere-se ao sistema da biblioteca
           continue
 
         totalEmprestimos = len(l.historico._emprestimos._data)
-        print("o livro '" + l.titulo + "' já teve " + str(totalEmprestimos) + " empréstimo(s) registrados no histórico.")
+        print("o livro '" + l.titulo + "' já teve " + str(totalEmprestimos) + " empréstimo(s) registrados no histórico. E ainda restam: " + str(l.disponiveis) + "livros")
