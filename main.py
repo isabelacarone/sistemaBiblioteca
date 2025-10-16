@@ -24,7 +24,7 @@ if __name__=="__main__":
     l = cat.buscarPorTitulo("Clean Code")
 
     if l:
-        from app.usuario import Usuario
+        from .usuario import Usuario
         print(l.emprestar(Usuario("Alice"))); print(l.emprestar(Usuario("Bruno"))); print(l.emprestar(Usuario("Carla")))
         print(l.devolver(Usuario("Alice")))
     menu_cli(cat)

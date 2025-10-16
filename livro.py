@@ -4,7 +4,6 @@ from TAD.pilha import ArrayStack
 from emprestimo import Emprestimo
 from reserva import Reserva
 
-
 '''
 __tudoJunto__() => retorna uma str detalhada para listar tudo 
 emprestar() => registra um novo emprestimo se tiver livros disp.. caso contrario vai adiciona o usuário à fila de espera
