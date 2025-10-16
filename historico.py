@@ -1,125 +1,119 @@
 from datetime import datetime, timedelta
-from TAD.duplamente import DoublyLinkedListIterator
+from TAD.pilha import ArrayStack
+from TAD.fila import ArrayQueue
 
 '''
-controla o histórico de empréstimos e reservas de um livro, 
-utilizando uma lista duplamente encadeada.
+controla o histórico de empréstimos e reservas de um livro 
+usando uma pilha e uma fila.
 
 self._livro => referência para o livro ao qual o histórico pertence
-self._emprestimos => lista duplamente encadeada com os registros de empréstimos
-self._reservas => lista duplamente encadeada com os registros de reservas
+self._emprestimos => pilha com os registros de empréstimos
+self._reservas => fila com os registros de reservas
 
-registrarEmprestimo() => adiciona um novo empréstimo com data e hora atuais
+registrarEmprestimo() => adiciona um novo empréstimo na pilha
 registrarDevolucao() => encerra o empréstimo em aberto de um usuário e notifica a fila
-registrarReserva() => adiciona um novo registro de reserva
+registrarReserva() => adiciona um novo registro de reserva na fila
 _notificarProximoReserva() => envia notificação ao primeiro usuário da fila
-reservaAtiva() => verifica se a reserva do usuário ainda está dentro do prazo de 24h
 exibirHistorico() => mostra todas as operações de empréstimos e reservas do livro
 '''
+
 class Historico:
 
     def __init__(self, livro):
         # cria o histórico vinculado a um livro específico
         self._livro = livro
-        self._emprestimos = DoublyLinkedListIterator()  # lista encadeada de empréstimos
-        self._reservas = DoublyLinkedListIterator()     # lista encadeada de reservas
+        self._emprestimos = ArrayStack()  # pilha de empréstimos
+        self._reservas = ArrayQueue()     # fila de reservas
 
-    # registra um novo empréstimo
     def registrarEmprestimo(self, usuario):
-        # adiciona um novo registro com data atual e sem devolução ainda
+        """
+        registra um novo empréstimo e adiciona na pilha
+        """
         registro = {
             "usuario": usuario.nome,
             "dataEmprestimo": datetime.now(),
             "dataDevolucao": None
         }
-        self._emprestimos.last_Node()   # posiciona o iterador no final
-        self._emprestimos.addNode(registro)
+        self._emprestimos.push(registro)
         print("empréstimo de '" + self._livro.titulo + "' feito por " + usuario.nome + " registrado com sucesso.")
 
- 
-    # registra uma devolução
     def registrarDevolucao(self, usuario):
-        # percorre a lista do fim para o início buscando empréstimo em aberto
-        self._emprestimos.last_Node()
-        while self._emprestimos.iterator is not None:
-            emp = self._emprestimos.iterator.data
+        """
+        percorre a pilha do topo para base buscando empréstimo aberto
+        e marca a data de devolução, notificando o próximo da fila se existir
+        """
+        temp = ArrayStack()
+        devolvido = False
+
+        while not self._emprestimos.is_empty():
+            emp = self._emprestimos.pop()
             if emp["usuario"] == usuario.nome and emp["dataDevolucao"] is None:
                 emp["dataDevolucao"] = datetime.now()
+                devolvido = True
                 print("devolução registrada para " + usuario.nome + ".")
                 self._notificarProximoReserva()
-                return
-            self._emprestimos.antNode()
-        print("nenhum empréstimo aberto encontrado para " + usuario.nome + ".")
+            temp.push(emp)
 
-    # registra uma nova reserva
+        # restaura a pilha original
+        while not temp.is_empty():
+            self._emprestimos.push(temp.pop())
+
+        if not devolvido:
+            print("nenhum empréstimo em aberto encontrado para " + usuario.nome + ".")
+
     def registrarReserva(self, usuario):
-        # adiciona novo registro de reserva
+        """
+        adiciona um novo registro de reserva na fila
+        """
         reserva = {
             "usuario": usuario.nome,
             "dataReserva": datetime.now(),
             "notificadoEm": None,
             "expiraEm": None
         }
-        self._reservas.last_Node()
-        self._reservas.addNode(reserva)
+        self._reservas.enqueue(reserva)
         print("reserva registrada para " + usuario.nome + ".")
 
-
-    # notifica o próximo usuário da fila de reservas
     def _notificarProximoReserva(self):
-        # percorre a lista e notifica o primeiro usuário ainda não notificado
-        self._reservas.first_Node()
-        while self._reservas.iterator is not None:
-            reserva = self._reservas.iterator.data
-            if reserva["notificadoEm"] is None:
-                reserva["notificadoEm"] = datetime.now()
-                reserva["expiraEm"] = reserva["notificadoEm"] + timedelta(hours=24)
-                print("usuário " + reserva["usuario"] + " foi notificado. prioridade válida até " +
-                      reserva["expiraEm"].strftime("%d/%m %H:%M") + ".")
-                return
-            self._reservas.nextNode()
+        """
+        notifica o primeiro usuário da fila de reservas, se existir
+        """
+        if self._reservas.is_empty():
+            return
 
+        reserva = self._reservas.dequeue()
+        reserva["notificadoEm"] = datetime.now()
+        reserva["expiraEm"] = reserva["notificadoEm"] + timedelta(hours=24)
+        print(
+            "usuário " + reserva["usuario"] + " foi notificado. prioridade válida até "
+            + reserva["expiraEm"].strftime("%d/%m %H:%M") + "."
+        )
 
-    # verifica se a reserva de um usuário ainda é válida
-    def reservaAtiva(self, nomeUsuario):
-        self._reservas.first_Node()
-        while self._reservas.iterator is not None:
-            reserva = self._reservas.iterator.data
-            if reserva["usuario"] == nomeUsuario and reserva["expiraEm"] is not None:
-                return datetime.now() <= reserva["expiraEm"]
-            self._reservas.nextNode()
-        return False
-
-
-    # exibe todas as operações de empréstimos e reservas - tipo o __tudoJunto__
     def exibirHistorico(self):
+        """
+        exibe todas as operações de empréstimos e reservas
+        """
         print("\n===== HISTÓRICO DO LIVRO: " + self._livro.titulo + " =====")
 
         print("\n--- EMPRÉSTIMOS ---")
-        self._emprestimos.first_Node()
-        if self._emprestimos.iterator is None:
+        if self._emprestimos.is_empty():
             print("nenhum empréstimo registrado.")
         else:
-            while self._emprestimos.iterator is not None:
-                emp = self._emprestimos.iterator.data
+            for emp in self._emprestimos._data:
                 texto = "• " + emp["usuario"] + " — emprestado em " + emp["dataEmprestimo"].strftime("%d/%m/%Y %H:%M")
-                if emp["dataDevolucao"] is not None:
+                if emp["dataDevolucao"]:
                     texto += " | devolvido em " + emp["dataDevolucao"].strftime("%d/%m/%Y %H:%M")
                 else:
                     texto += " | em aberto"
                 print(texto)
-                self._emprestimos.nextNode()
 
         print("\n--- RESERVAS ---")
-        self._reservas.first_Node()
-        if self._reservas.iterator is None:
+        if self._reservas.is_empty():
             print("nenhuma reserva registrada.")
         else:
-            while self._reservas.iterator is not None:
-                res = self._reservas.iterator.data
+            for res in self._reservas._data:
                 texto = "• " + res["usuario"] + " — reservou em " + res["dataReserva"].strftime("%d/%m/%Y %H:%M")
-                if res["notificadoEm"] is not None:
+                if res["notificadoEm"]:
                     texto += " | notificado em " + res["notificadoEm"].strftime("%d/%m/%Y %H:%M")
                     texto += " (expira " + res["expiraEm"].strftime("%d/%m %H:%M") + ")"
                 print(texto)
-                self._reservas.nextNode()
