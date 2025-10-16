@@ -165,3 +165,14 @@ def interface(): # sistema a ser feito ainda, refere-se ao sistema da biblioteca
           for r in reservas._data:
             print(str(posicao) + "º - " + r["usuario"] + " (reserva feita em " + r["dataReserva"].strftime("%d/%m/%Y %H:%M") + ")")
             posicao += 1
+      elif opcao == 6:
+        # Ver total de empréstimos de um livro
+        titulo = input('Digite o título do livro: ').strip()
+        l = catalogo.buscarPorTitulo(titulo)
+        if not l:
+          print('livro não encontrado.')
+          continue
+
+        totalEmprestimos = len(l.historico._emprestimos._data)
+        print("o livro '" + l.titulo + "' já teve " + str(totalEmprestimos) + " empréstimo(s) registrados no histórico.")
+
