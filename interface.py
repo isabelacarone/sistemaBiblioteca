@@ -3,177 +3,113 @@ from livro import livro
 from usuario import Usuario
 from datetime import datetime # para registro automático da data de empréstimo e devolução no histórico
 
-def interface(): # sistema a ser feito ainda, refere-se ao sistema da biblioteca
-    """
-    Interface de navegação do usuário
-    """
-    def today():
-      return datetime.now().strftime("%d/%m/%Y") # retorna dia-mês-ano
 
+def _obter_livro_do_catalogo(catalogo: Catalogo):
+    """
+    Função auxiliar para pedir um título ao usuário e buscar no catálogo.
+    Lida com o caso de o livro não ser encontrado.
+    Retorna o objeto Livro ou None.
+    """
+    titulo = input("Digite o título do livro: ").strip()
+    livro = catalogo.buscar_por_titulo(titulo)
+    if not livro:
+        print("Livro não encontrado no catálogo.")
+        return None
+    return livro
+
+
+def _obter_dados_usuario():
+    """
+    Função auxiliar para pedir nome e e-mail e retornar um objeto Usuario.
+    """
+    nome = input("Seu nome: ").strip()
+    email = input("Seu e-mail (opcional): ").strip()
+    return Usuario(nome, email)
+
+
+def interface(catalogo: Catalogo):
+    """
+    Função principal que gerencia a interface de linha de comando (CLI) para o usuário.
+    Refatorada para maior clareza e menos repetição de código.
+    """
     while True:
-
-      print('\n===== MENU DA BIBLIOTECA =====')
-      print('1 - Buscar livro (por título, autor ou editora)')
-      print('2 - Solicitar empréstimo')
-      print('3 - Devolver livro')
-      print('4 - Entrar na lista de espera')
-      print('5 - Ver lista de espera de um livro')
-      print('6 - Ver total de empréstimos de um livro')
-      print('0 - Sair')
-
-      """
-      tratamento de exceção com try e except para caso o usuário insira um número diferente de: 0, 1, 2, 3, 4, 5 e 6
-      """
-      try:
-        opcao = int(input("Escolha: "))
-        if opcao < 0 or opcao > 6:
-          print('Erro, digite um número entre 0 e 6 ')
-          continue
-      except ValueError as erro:
-        print(f'Erro: {erro}')
-        continue
-
-
-      # início do menu
-
-      if opcao == 0:
-        print('Saindo do sistema.')
-        break
-
-      elif opcao == 1:
-        print('escolha o método de busca:')
-        print('1 - por título ')
-        print('2 - por autor')
-        print('3 - por editora ')
-        print('4 - por ano ')
+        print("\n===== MENU DA BIBLIOTECA =====\n")
+        print("1 - Buscar Livro")
+        print("2 - Solicitar Empréstimo")
+        print("3 - Devolver Livro")
+        print("4 - Entrar na Lista de Espera")
+        print("5 - Ver Lista de Espera de Um Livro")
+        print("0 - Sair")
 
         try:
-          modo = int(input('Escolha o modo de busca: '))
+            opcao = int(input("Escolha: "))
         except ValueError:
-          print('entrada inválida')
-          continue
-
-        termo = input('Digite o termo de busca: ').strip()
-
-        if modo == 1:
-          livroEncontrado = catalogo.buscarPorTitulo(termo)
-          if livroEncontrado:
-            print(livroEncontrado.__tudoJunto__())
-          else:
-            print('nenhum livro encontrado com esse título')
-
-        elif modo == 2:
-          resultados = catalogo.buscarPorAutor(termo)
-          if resultados:
-            for i in resultados:
-              print(i.__tudoJunto__())
-          else:
-            print('nenhum livro encontrado com esse autor')
-
-        elif modo == 3:
-          resultados = catalogo.buscarPorEditora(termo)
-          if resultados:
-            for i in resultados:
-              print(i.__tudoJunto__())
-          else:
-            print('nenhum livro encontrado com essa editora')
-
-        elif modo == 4:
-          try:
-            ano = int(termo)
-          except ValueError:
-            print('ano inválido')
+            print("Erro: Entrada inválida. Por favor, digite um número.")
             continue
-          resultados = catalogo.buscarPorAno(ano)
-          if resultados:
-            for i in resultados:
-              print(i.__tudoJunto__())
-          else:
-            print('nenhum livro encontrado nesse ano')
+
+        if opcao == 0:
+            print("Saindo do sistema.")
+            break
+
+        elif opcao == 1:
+            # Lógica de busca
+            termo = input("Digite o termo de busca (título, autor ou editora): ").strip()
+            # Busca em todos os campos relevantes e junta os resultados.
+            resultados = (catalogo.buscar_por_titulo(termo) or []) + \
+                         catalogo.buscar_por_autor(termo) + \
+                         catalogo.buscar_por_editora(termo)
+
+            # Remove duplicatas se um livro corresponder a múltiplos critérios
+            resultados_unicos = list(dict.fromkeys(resultados))
+
+            if resultados_unicos:
+                print("\n--- Resultados da Busca ---")
+                for livro in resultados_unicos:
+                    print(livro)
+            else:
+                print("Nenhum livro encontrado com o termo informado.")
+
+        elif opcao == 2:
+            # Solicitar empréstimo
+            livro = _obter_livro_do_catalogo(catalogo)
+            if livro:
+                usuario = _obter_dados_usuario()
+                mensagem = livro.emprestar(usuario)
+                print(mensagem)
+
+        elif opcao == 3:
+            # Devolver livro
+            livro = _obter_livro_do_catalogo(catalogo)
+            if livro:
+                usuario = _obter_dados_usuario()
+                mensagem = livro.devolver(usuario)
+                print(mensagem)
+
+        elif opcao == 4:
+            # Entrar na lista de espera
+            livro = _obter_livro_do_catalogo(catalogo)
+            if livro:
+                if livro.disponiveis > 0:
+                    print("Há exemplares disponíveis. Use a opção 2 para solicitar o empréstimo.")
+                else:
+                    usuario = _obter_dados_usuario()
+                    mensagem = livro.emprestar(usuario)
+                    print(mensagem)
+
+        elif opcao == 5:
+            # Ver lista de espera de um livro
+            livro = _obter_livro_do_catalogo(catalogo)
+            if livro:
+                # --- MUDANÇA APLICADA AQUI ---
+                # Em vez de acessar '_reservas', usamos os métodos públicos.
+                if not livro.historico.has_reservas():
+                    print("Não há ninguém na lista de espera para este livro.")
+                else:
+                    reservas = livro.historico.get_reservas()
+                    print(f"\n--- LISTA DE ESPERA DE '{livro.titulo.upper()}' ---")
+                    for i, r in enumerate(reservas, 1):
+                        print(f'{i}º - {r["usuario"]} (reserva feita em {r["dataReserva"].strftime("%d/%m/%Y %H:%M")})')
+                # ---------------------------------
 
         else:
-           print('opção inválida, deve ser um número entre 1 e 4 ')
-
-      elif opcao == 2:
-        # Solicitar empréstimo
-        titulo = input('Digite o título do livro que deseja emprestar: ').strip()
-        l = catalogo.buscarPorTitulo(titulo)
-        if not l:
-          print('livro não encontrado.')
-          continue
-
-        nome = input('Seu nome: ').strip()
-        email = input('Seu e-mail (opcional): ').strip()
-        u = Usuario(nome, email)
-
-        try:
-          l.emprestar(u)
-        except Exception as e:
-          print('erro ao registrar empréstimo:', e)
-
-      elif opcao == 3:
-        # Devolver livro
-        titulo = input('Digite o título do livro que deseja devolver: ').strip()
-        l = catalogo.buscarPorTitulo(titulo)
-        if not l:
-          print('livro não encontrado.')
-          continue
-
-        nome = input('Seu nome: ').strip()
-        email = input('Seu e-mail (opcional): ').strip()
-        u = Usuario(nome, email)
-
-        try:
-          l.devolver(u)
-        except Exception as e:
-          print('erro ao registrar devolução:', e)
-
-      elif opcao == 4:
-        # Entrar na lista de espera
-        titulo = input('Digite o título do livro: ').strip()
-        l = catalogo.buscarPorTitulo(titulo)
-        if not l:
-          print('livro não encontrado.')
-          continue
-
-        if getattr(l, 'disponiveis', 0) > 0:
-          print('há exemplares disponíveis. você pode solicitar o empréstimo na opção 2.')
-          continue
-
-        nome = input('Seu nome: ').strip()
-        email = input('Seu e-mail (opcional): ').strip()
-        u = Usuario(nome, email)
-
-        try:
-          l.emprestar(u)  # o método emprestar adiciona à fila se não tiver cópias
-        except Exception as e:
-          print('erro ao entrar na fila de espera:', e)
-
-      elif opcao == 5:
-        # Ver lista de espera de um livro
-        titulo = input('Digite o título do livro: ').strip()
-        l = catalogo.buscarPorTitulo(titulo)
-        if not l:
-          print('livro não encontrado.')
-          continue
-
-        reservas = getattr(l.historico, "_reservas", None)
-        if not reservas or reservas.is_empty():
-          print("não há ninguém na lista de espera para este livro.")
-        else:
-          print("\n--- LISTA DE ESPERA DE '" + l.titulo + "' ---")
-          posicao = 1
-          for r in reservas._data:
-            print(str(posicao) + "º - " + r["usuario"] + " (reserva feita em " + r["dataReserva"].strftime("%d/%m/%Y %H:%M") + ")")
-            posicao += 1
-
-      elif opcao == 6:
-        # Ver total de empréstimos de um livro
-        titulo = input('Digite o título do livro: ').strip()
-        l = catalogo.buscarPorTitulo(titulo)
-        if not l:
-          print('livro não encontrado.')
-          continue
-
-        totalEmprestimos = len(l.historico._emprestimos._data)
-        print("o livro '" + l.titulo + "' já teve " + str(totalEmprestimos) + " empréstimo(s) registrados no histórico. E ainda restam: " + str(l.disponiveis) + "livros")
+            print("Erro! Digite um número entre 0 e 5.")

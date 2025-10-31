@@ -16,18 +16,55 @@ registrarReserva() => adiciona um novo registro de reserva na fila
 _notificarProximoReserva() => envia notificação ao primeiro usuário da fila
 exibirHistorico() => mostra todas as operações de empréstimos e reservas do livro
 '''
-
 class Historico:
+    """
+    Controla o histórico de empréstimos e reservas de um livro.
+    Refatoração: Métodos agora retornam mensagens e expõem dados de forma controlada.
+    """
 
     def __init__(self, livro):
-        # cria o histórico vinculado a um livro específico
         self._livro = livro
-        self._emprestimos = ArrayStack()  # pilha de empréstimos
-        self._reservas = ArrayQueue()     # fila de reservas
+        self._emprestimos = ArrayStack()
+        self._reservas = ArrayQueue()
 
-    def registrarEmprestimo(self, usuario):
+    def get_reservas(self):
         """
-        registra um novo empréstimo e adiciona na pilha
+        Retorna uma lista dos registros de reserva para visualização.
+        Isso evita que o código externo acesse a fila '_reservas' diretamente.
+
+        :return: Uma lista de dicionários, cada um representando uma reserva.
+        """
+        # A iteração sobre a fila já retorna os itens de forma segura.
+        return list(self._reservas)
+
+    def has_reservas(self):
+        """
+        Verifica se há alguma reserva na fila de espera.
+
+        :return: True se houver reservas, False caso contrário.
+        """
+        return not self._reservas.is_empty()
+
+    def _notificar_proximo_reserva(self):
+        """
+        Notifica o primeiro usuário da fila de reservas.
+        Retorna a mensagem de notificação para ser usada externamente.
+        """
+        if self._reservas.is_empty():
+            return ""  # Retorna string vazia se não houver ninguém para notificar.
+
+        reserva = self._reservas.dequeue()
+        reserva["notificadoEm"] = datetime.now()
+        reserva["expiraEm"] = reserva["notificadoEm"] + timedelta(hours=24)
+
+        return (
+            f"Notificação: Usuário {reserva['usuario']} foi notificado. "
+            f"A reserva para empréstimo é válida até {reserva['expiraEm'].strftime('%d/%m/%Y %H:%M')}."
+        )
+
+    def registrar_emprestimo(self, usuario):
+        """
+        Registra um novo empréstimo e retorna uma mensagem de sucesso.
         """
         registro = {
             "usuario": usuario.nome,
@@ -35,35 +72,36 @@ class Historico:
             "dataDevolucao": None
         }
         self._emprestimos.push(registro)
-        print("empréstimo de '" + self._livro.titulo + "' feito por " + usuario.nome + " registrado com sucesso.")
+        return f"Empréstimo de '{self._livro.titulo}' para {usuario.nome} registrado com sucesso."
 
-    def registrarDevolucao(self, usuario):
+    def registrar_devolucao(self, usuario):
         """
-        percorre a pilha do topo para base buscando empréstimo aberto
-        e marca a data de devolução, notificando o próximo da fila se existir
+        Registra uma devolução, notifica o próximo da fila e retorna mensagens de status.
         """
-        temp = ArrayStack()
+        temp_stack = ArrayStack()
         devolvido = False
+        mensagem_notificacao = ""
 
         while not self._emprestimos.is_empty():
             emp = self._emprestimos.pop()
-            if emp["usuario"] == usuario.nome and emp["dataDevolucao"] is None:
+            if emp["usuario"] == usuario.nome and emp["dataDevolucao"] is None and not devolvido:
                 emp["dataDevolucao"] = datetime.now()
                 devolvido = True
-                print("devolução registrada para " + usuario.nome + ".")
-                self._notificarProximoReserva()
-            temp.push(emp)
+                mensagem_notificacao = self._notificar_proximo_reserva()
+            temp_stack.push(emp)
 
-        # restaura a pilha original
-        while not temp.is_empty():
-            self._emprestimos.push(temp.pop())
+        while not temp_stack.is_empty():
+            self._emprestimos.push(temp_stack.pop())
 
-        if not devolvido:
-            print("nenhum empréstimo em aberto encontrado para " + usuario.nome + ".")
+        if devolvido:
+            mensagem_principal = f"Devolução registrada para {usuario.nome}."
+            return f"{mensagem_principal}\n{mensagem_notificacao}".strip()
+        else:
+            return f"Nenhum empréstimo em aberto encontrado para {usuario.nome}."
 
-    def registrarReserva(self, usuario):
+    def registrar_reserva(self, usuario):
         """
-        adiciona um novo registro de reserva na fila
+        Registra uma nova reserva e retorna uma mensagem de sucesso.
         """
         reserva = {
             "usuario": usuario.nome,
@@ -72,48 +110,4 @@ class Historico:
             "expiraEm": None
         }
         self._reservas.enqueue(reserva)
-        print("reserva registrada para " + usuario.nome + ".")
-
-    def _notificarProximoReserva(self):
-        """
-        notifica o primeiro usuário da fila de reservas, se existir
-        """
-        if self._reservas.is_empty():
-            return
-
-        reserva = self._reservas.dequeue()
-        reserva["notificadoEm"] = datetime.now()
-        reserva["expiraEm"] = reserva["notificadoEm"] + timedelta(hours=24)
-        print(
-            "usuário " + reserva["usuario"] + " foi notificado. prioridade válida até "
-            + reserva["expiraEm"].strftime("%d/%m %H:%M") + "."
-        )
-
-    def exibirHistorico(self):
-        """
-        exibe todas as operações de empréstimos e reservas
-        """
-        print("\n===== HISTÓRICO DO LIVRO: " + self._livro.titulo + " =====")
-
-        print("\n--- EMPRÉSTIMOS ---")
-        if self._emprestimos.is_empty():
-            print("nenhum empréstimo registrado.")
-        else:
-            for emp in self._emprestimos._data:
-                texto = "• " + emp["usuario"] + " — emprestado em " + emp["dataEmprestimo"].strftime("%d/%m/%Y %H:%M")
-                if emp["dataDevolucao"]:
-                    texto += " | devolvido em " + emp["dataDevolucao"].strftime("%d/%m/%Y %H:%M")
-                else:
-                    texto += " | em aberto"
-                print(texto)
-
-        print("\n--- RESERVAS ---")
-        if self._reservas.is_empty():
-            print("nenhuma reserva registrada.")
-        else:
-            for res in self._reservas._data:
-                texto = "• " + res["usuario"] + " — reservou em " + res["dataReserva"].strftime("%d/%m/%Y %H:%M")
-                if res["notificadoEm"]:
-                    texto += " | notificado em " + res["notificadoEm"].strftime("%d/%m/%Y %H:%M")
-                    texto += " (expira " + res["expiraEm"].strftime("%d/%m %H:%M") + ")"
-                print(texto)
+        return f"Reserva para '{self._livro.titulo}' registrada para {usuario.nome}. Você foi adicionado à fila de espera."
