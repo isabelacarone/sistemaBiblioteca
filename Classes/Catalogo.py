@@ -1,20 +1,5 @@
-from TAD.duplamente import DoublyLinkedListIterator
+from TADs.DoublyLinkedListIterator import DoublyLinkedListIterator
 
-'''
-controla os livros do catalogo, usa uma lista duplamente encadeada para armazenar, buscar e remover livros...
-
-
-
-self._listaCatalogo => armazena a lista dup onde ficam os livros
-padronizando() => muda textos p/ minúsculos e sem espaço buscando evitar duplicações
-adicionarLivros() => adiciona liivro no catalogo SE ele não existir
-buscarPorTitulo() => busca pelo nome
-buscarPorAutor => busca todos os livros de tal autor
-buscarPorEditora => busca todos os livros da tal editora
-buscarPorAno() => buscar todos os livrvos em tal ano
-listarTodos() => mostra todos os livros cadastrados
-removerLivro() => apaga um livro do catalogo
-'''
 def padronizando(texto):
     return str(texto).strip().lower()
 
