@@ -1,50 +1,95 @@
-# main.py
-
-from catalogo import Catalogo
+# main.p
 import catalogo as catalogo_mod
 
-from livro import Livro
 import livro as livro_mod
 
 from usuario import Usuario
+import random
+from catalogo import Catalogo
+from livro import Livro
+from usuario import Usuario
+from interface import interface
+from Dados.BaseLivros import BASE_LIVROS
+from Dados.BaseUsuarios import NOMES_USUARIOS
 
-def carregarDemo(cat: Catalogo):
-    base = [
-        # livro                             autor         ano     editora  qntd
-        ("Estruturas de Dados em Python","Niklaus Wirth",2020,"TechBooks",3),
-        ("Algoritmos: Teoria e Prática","Thomas H. Cormen",2013,"Elsevier",2),
-        ("Banco de Dados","Ramez Elmasri",2011,"Pearson",4),
-        ("Inteligência Artificial","Stuart Russell",2021,"Pearson",2),
-        ("Engenharia de Software","Roger Pressman",2017,"AMGH",3),
-        ("Clean Code","Robert C. Martin",2008,"Prentice Hall",2),
-        ("Padrões de Projeto","Erich Gamma et al.",1994,"Addison-Wesley",2),
-        ("Sistemas Operacionais","Abraham Silberschatz",2018,"Wiley",2),
-        ("Arquitetura de Computadores","John L. Hennessy",2017,"Morgan Kaufmann",2),
-        ("Redes de Computadores","Andrew S. Tanenbaum",2019,"Pearson",3),
-    ]
-    for t, a, ano, ed, q in base:
-        cat.adicionarLivro(Livro(t, a, ano, ed, q))
+def carregar_livros(catalogo: Catalogo):
+    """
+    Função para carregar a base de livros no catálogo de forma silenciosa.
+    """
+    print("Carregando base de dados de livros...")
+    for titulo, autor, ano, editora, qtd in BASE_LIVROS:
+        catalogo.adicionar_livro(Livro(titulo, autor, ano, editora, qtd), silencioso=True)
+    print(f"{len(BASE_LIVROS)} livros foram carregados com sucesso.")
 
-    # adiciona "Sociedade do Cansaço" sem exemplares para que entre direto na fila
-    livro_han = Livro("Sociedade do Cansaço", "Byung-Chul Han", 2010, "Vozes", 0)
-    cat.adicionarLivro(livro_han)
 
-    # coloca Guilherme na fila de espera desse livro
-    guilherme = Usuario("Guilherme")
-    livro_han.emprestar(guilherme)  # sem cópias -> vai para fila de espera
-    # mensagem de notificação ao abrir o sistema:
-    print("notificação: Guilherme está na lista de espera para 'Sociedade do Cansaço'.")
+def simular_mvp_detalhado(catalogo: Catalogo):
+    """
+    Executa a simulação de MVP detalhada, com nomes de usuários reais para as
+    devoluções e um output mais limpo e espaçado.
+    """
 
+    todos_os_titulos = [livro_info[0] for livro_info in BASE_LIVROS]
+    titulos_para_simulacao = random.sample(todos_os_titulos, 12)
+
+    livro_grupo_a = catalogo.buscar_por_titulo(titulos_para_simulacao[0])
+    livro_grupo_b = catalogo.buscar_por_titulo(titulos_para_simulacao[1])
+    livros_espalhados = [catalogo.buscar_por_titulo(t) for t in titulos_para_simulacao[2:]]
+    livros_da_simulacao = [livro_grupo_a, livro_grupo_b] + livros_espalhados
+
+    # Dicionário para guardar quem pegou qual livro "emprestado" na simulação.
+    emprestimos_fantasmas = {}
+
+    for livro in livros_da_simulacao:
+        if livro:
+            livro.disponiveis = 0
+            livro.emprestados = livro.quantidade
+
+            usuarios_para_fila = random.sample(NOMES_USUARIOS, 10)
+            for nome in usuarios_para_fila:
+                livro.emprestar(Usuario(nome))
+
+            # Seleciona 5 usuários únicos da base para serem os "doadores" deste livro.
+            doadores_deste_livro = [Usuario(nome) for nome in random.sample(NOMES_USUARIOS, 5)]
+            emprestimos_fantasmas[livro.titulo] = doadores_deste_livro
+
+            # Injeta os empréstimos fantasmas usando os nomes reais selecionados.
+            for doador in doadores_deste_livro:
+                livro.historico._emprestimos.push({
+                    "usuario": doador.nome,
+                    "dataEmprestimo": "2025-10-01 10:00:00",
+                    "dataDevolucao": None
+                })
+
+    # Grupo A: 5 notificações para o mesmo livro
+    print(f"\n-- Processando 5 devoluções para '{livro_grupo_a.titulo}', {livro_grupo_a.autor} --\n")
+    doadores_grupo_a = emprestimos_fantasmas[livro_grupo_a.titulo]
+    for i, doador in enumerate(doadores_grupo_a, 1):
+        print(livro_grupo_a.devolver(doador))
+        print()
+
+    # Grupo B: 5 notificações para o segundo livro.
+    print(f"\n-- Processando 5 devoluções para '{livro_grupo_b.titulo}', {livro_grupo_b.autor} --\n")
+    doadores_grupo_b = emprestimos_fantasmas[livro_grupo_b.titulo]
+    for i, doador in enumerate(doadores_grupo_b, 1):
+        print(livro_grupo_b.devolver(doador))
+        print()
+
+    # Grupo C: 10 notificações espalhadas.
+    print("\n-- Processando 10 devoluções espalhadas --")
+    for livro in livros_espalhados:
+        if livro and livro.historico.has_reservas():
+            # Pega o primeiro "doador" da lista daquele livro para a devolução.
+            doador_designado = emprestimos_fantasmas[livro.titulo][0]
+            mensagem = livro.devolver(doador_designado)
+            print(f"'{livro.titulo}', {livro.autor}:\n{mensagem}")
+            print()
+
+# Bloco de execução principal.
 if __name__ == "__main__":
-    # 1) cria catálogo e carrega dados
+    print("Inicializando o sistema da biblioteca...")
     cat = Catalogo()
-    carregarDemo(cat)
 
-    # 2) cria os aliases exatamente como o interface.py espera
-    #    (from catalogo import catalogo) e (from livro import livro)
-    catalogo_mod.catalogo = cat
-    livro_mod.livro = Livro
+    carregar_livros(cat)
+    simular_mvp_detalhado(cat)
 
-    # 3) só agora importamos e iniciamos a interface
-    from interface import interface
-    interface()
+    interface(cat)
